@@ -65,6 +65,19 @@ func NewGPIO(gpioconf map[string]GPIOConf) (*GPIO, error) {
 	return gpio, nil
 }
 
+func (g *GPIO) SetGPIO(name string, value bool) error {
+	g.mu.Lock()
+	defer g.mu.Unlock()
+	if gpio, ok := g.output[name]; ok {
+		if gpio.line == nil {
+			return fmt.Errorf("output name:%s error config", name)
+		}
+		return gpio.line.SetValue(BoolToInt(value))
+	} else {
+		return fmt.Errorf("not found config output name:%s", name)
+	}
+}
+
 func (g *GPIO) SetOutput(set SetOutput) error {
 	g.mu.Lock()
 	defer g.mu.Unlock()
@@ -76,7 +89,6 @@ func (g *GPIO) SetOutput(set SetOutput) error {
 	} else {
 		return fmt.Errorf("not found config output name:%s", set.name)
 	}
-	//return nil
 }
 
 func (g *GPIO) Run(wg *sync.WaitGroup, ctx context.Context) {
