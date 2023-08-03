@@ -58,7 +58,8 @@ func NewGPIO(gpioconf map[string]GPIOConf) (*GPIO, error) {
 		if line, err := gpiod.RequestLine(cfg_gpiod.Chip, cfg_gpiod.Line, gpiod.AsOutput(cfg_gpiod.Defaut)); err == nil {
 			gpio.output[name_output] = Output{line: line}
 		} else {
-			return nil, fmt.Errorf("gpio:%s err:%s", name_output, err)
+			log.Println("gpio:%s err:%s", name_output, err)
+			//return nil, fmt.Errorf("gpio:%s err:%s", name_output, err)
 		}
 	}
 
