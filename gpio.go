@@ -9,6 +9,12 @@ import (
 	"github.com/warthog618/gpiod"
 )
 
+type GPIOConf struct {
+	Chip   string `yaml:"chip"`
+	Line   int    `yaml:"line"`
+	Defaut int    `yaml:"default"`
+}
+
 func BoolToInt(v bool) (ret int) {
 	if v {
 		ret = 1
@@ -42,13 +48,21 @@ type GPIO struct {
 type ConfigGPIO struct {
 }
 
-func NewGPIO(output map[string]Output) *GPIO {
+func NewGPIO(gpioconf map[string]GPIOConf) (*GPIO, error) {
 	gpio := &GPIO{
-		output:        output,
+		output:        map[string]Output{},
 		CH_SET_OUTPUT: make(chan SetOutput, 1),
 	}
 
-	return gpio
+	for name_output, cfg_gpiod := range gpioconf {
+		if line, err := gpiod.RequestLine(cfg_gpiod.Chip, cfg_gpiod.Line, gpiod.AsOutput(cfg_gpiod.Defaut)); err == nil {
+			gpio.output[name_output] = Output{line: line}
+		} else {
+			return nil, fmt.Errorf("gpio:%s err:%s", name_output, err)
+		}
+	}
+
+	return gpio, nil
 }
 
 func (g *GPIO) SetOutput(set SetOutput) error {
